@@ -21,4 +21,4 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "carelink_scraper.py", "--headless"]
+CMD ["python", "youtube_scraper.py", "--headless"]
