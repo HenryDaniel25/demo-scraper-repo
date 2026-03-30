@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - develop
-  # schedule:
-  #   # Run every 5 minutes
-  #   - cron: "*/5 * * * *"
-      
 
 jobs:
   build-deploy:
@@ -28,18 +24,44 @@ jobs:
 
       # ✅ 3. Login to ECR
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # ✅ 4. Build & Push Docker Image
-      - name: Build, tag, and push image to Amazon ECR
+      # ✅ 4. Retag old latest and push new latest
+      - name: Retag old latest and push new latest
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: latest   # you can change to ${{ github.sha }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          echo "🚀 Building Docker image..."
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY
 
-          echo "📤 Pushing image to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "🔍 Checking for existing latest image..."
+
+          # Get current latest image manifest
+          MANIFEST=$(aws ecr batch-get-image \
+            --repository-name $ECR_REPOSITORY \
+            --image-ids imageTag=latest \
+            --query 'images[0].imageManifest' \
+            --output text 2>/dev/null || echo "NONE")
+
+          if [ "$MANIFEST" != "NONE" ]; then
+            echo "📦 Found old latest image"
+
+            # Generate timestamp version
+            VERSION_TAG="v$(date +%Y%m%d%H%M%S)"
+
+            echo "🔖 Retagging old latest as $VERSION_TAG"
+
+            aws ecr put-image \
+              --repository-name $ECR_REPOSITORY \
+              --image-tag $VERSION_TAG \
+              --image-manifest "$MANIFEST"
+          else
+            echo "⚠️ No previous latest image found (first run)"
+          fi
+
+          echo "🚀 Building new image as latest..."
+          docker build -t $IMAGE_URI:latest .
+
+          echo "📤 Pushing new latest image..."
+          docker push $IMAGE_URI:latest
