@@ -1,24 +1,18 @@
-FROM python:3.11-slim
-
-# Install system deps
-RUN apt-get update && apt-get install -y \
-    wget curl unzip gnupg \
-    libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
-    libgbm1 libasound2 libpangocairo-1.0-0 libpango-1.0-0 \
-    libgtk-3-0 libdrm2 \
-    && rm -rf /var/lib/apt/lists/*
+FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
 WORKDIR /app
 
+# Copy dependencies first (better caching)
 COPY requirements.txt .
+
+# Install Python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
-RUN playwright install chromium
-
+# Copy project files
 COPY . .
 
+# Ensure logs show immediately in ECS
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "youtube_scraper.py", "--headless"]
+# Run script
+CMD ["python", "youtube_scraper.py"]
