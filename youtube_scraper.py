@@ -49,11 +49,7 @@ def scrape_youtube():
             writer.writerows(videos)
 
             print(f"\nSaved {len(videos)} videos to youtube_videos.csv")
-            s3 = boto3.client('s3',
-            region_name='ap-south-1',
-            aws_access_key_id='',
-            aws_secret_access_key=''
-            )
+            s3 = boto3.client('s3')
             s3.upload_file('youtube_videos.csv', 's3-youtube-demolist', 'folder/youtube_videos.csv')
 
 
