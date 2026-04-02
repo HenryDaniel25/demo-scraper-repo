@@ -1,5 +1,5 @@
-# demo-scraper-repo
-
+Architecure of scrapper code demo structure
+```
                 ┌──────────────────────────────┐
                 │         GitHub Repo          │
                 │  (Scraper code + Terraform)  │
@@ -29,7 +29,6 @@
                 │  (uses latest scraper image) │
                 └──────────────────────────────┘
 
-
                 ┌──────────────────────────────┐
                 │       Amazon EventBridge     │
                 │    (Schedule / Trigger)      │
@@ -50,8 +49,9 @@
                ┌───────────────┴────────────────┐
                │                                │
                ▼                                ▼
-┌──────────────────────────────┐   ┌──────────────────────────────┐
-│         Amazon DynamoDB      │   │            Amazon S3         │
-│       Store Raw Scraped      │   │    Store Final CSV Export    │
-│            Records           │   │                              │
-└──────────────────────────────┘   └──────────────────────────────┘
+    ┌──────────────────────────────┐   ┌──────────────────────────────┐
+    │         Amazon DynamoDB      │   │            Amazon S3         │
+    │       Store Raw Scraped      │   │    Store Final CSV Export    │
+    │            Records           │   │                              │
+    └──────────────────────────────┘   └──────────────────────────────┘
+```
